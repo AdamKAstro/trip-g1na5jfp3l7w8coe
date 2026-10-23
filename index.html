@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="USA Trip">
+<meta name="theme-color" content="#0f3d5e">
+<title>USA Trip To-Do</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#17202a;--mut:#5d6d7e;--line:#dde3e9;--pri:#0f3d5e;--ok:#1e8449;--warn:#b9770e;--bad:#c0392b}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%}
+header{position:sticky;top:0;z-index:5;background:var(--pri);color:#fff;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px}
+header h1{font-size:18px;margin:0;display:flex;justify-content:space-between;align-items:center;gap:8px}
+header .who{font-size:12px;font-weight:400;opacity:.85}
+.note{background:#fff8e1;border-bottom:1px solid #f0d98c;color:#6b5200;font-size:13px;padding:8px 14px}
+.bar{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:48px;z-index:4}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;font-size:14px;min-height:38px}
+.chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.stats{font-size:13px;color:var(--mut);padding:8px 14px}
+main{padding:0 10px calc(env(safe-area-inset-bottom) + 40px);max-width:760px;margin:0 auto}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--pri);margin:18px 4px 8px}
+h2 small{color:var(--mut);font-weight:400;text-transform:none;letter-spacing:0}
+.item{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:10px;margin:0 0 8px;display:flex;gap:10px;padding:10px}
+.item.urgent{border-left-color:var(--warn)}
+.item.overdue{border-left-color:var(--bad);background:#fdf2f1}
+.item.done{opacity:.6}
+.item.done .title{text-decoration:line-through}
+.tick{flex:0 0 auto;width:44px;height:44px;border:2px solid var(--pri);border-radius:10px;background:#fff;font-size:28px;line-height:40px;text-align:center;color:#fff;padding:0;cursor:pointer}
+.tick.on{background:var(--ok);border-color:var(--ok)}
+.tick:disabled{opacity:.5}
+.body{flex:1;min-width:0}
+.title{font-weight:600;word-wrap:break-word}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;font-size:12.5px;color:var(--mut)}
+.tag{background:#eef2f6;border-radius:6px;padding:2px 7px}
+.tag.bad{background:var(--bad);color:#fff}.tag.warn{background:var(--warn);color:#fff}.tag.ok{background:#e3f4ea;color:var(--ok)}
+.tag.info{background:#e8f0fb;color:#1f4e8c}.tag.unk{background:#f3e8fb;color:#6c3483}
+details{margin-top:6px;font-size:13.5px}
+summary{color:var(--pri);cursor:pointer;padding:4px 0}
+.dl{margin:4px 0 0;padding:0}.dl div{margin:3px 0}.dl b{color:var(--mut);font-weight:600}
+.refs{background:#fffbea;border:1px dashed #e0c36a;border-radius:6px;padding:4px 6px;white-space:pre-wrap;word-break:break-word}
+#login{max-width:380px;margin:40px auto;padding:20px;background:#fff;border-radius:12px;border:1px solid var(--line)}
+#login input{width:100%;font-size:17px;padding:12px;margin:6px 0 12px;border:1px solid var(--line);border-radius:8px}
+#login button,.btn{width:100%;font-size:17px;padding:12px;background:var(--pri);color:#fff;border:0;border-radius:8px}
+.small{background:transparent;border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:5px 9px;font-size:12px}
+#err{color:var(--bad);min-height:1.2em;font-size:14px}
+.live{display:inline-block;width:8px;height:8px;border-radius:50%;background:#aaa;margin-right:4px}.live.on{background:#2ecc71}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header><h1><span>USA Trip To-Do</span><span class="who"><span id="live" class="live"></span><span id="me"></span> <button id="out" class="small hidden">Sign out</button></span></h1></header>
+<div class="note">Items come from the USA bot's notes (findings.md §12) and are <b>UNVERIFIED</b> until Adam's master review cross-checks them. Always confirm against the actual booking.</div>
+
+<section id="login" class="hidden">
+  <h2 style="margin-top:0">Sign in</h2>
+  <form id="lf">
+    <label>Email<input id="em" type="email" autocomplete="username" required></label>
+    <label>Password<input id="pw" type="password" autocomplete="current-password" required></label>
+    <button type="submit">Sign in</button>
+    <p id="err"></p>
+  </form>
+</section>
+
+<div id="app" class="hidden">
+  <div class="bar" id="bar">
+    <button class="chip on" data-o="all">Everyone</button>
+    <button class="chip" data-o="Adam">Adam</button>
+    <button class="chip" data-o="Erin">Erin</button>
+    <button class="chip" data-o="shared">Both / either</button>
+    <button class="chip" id="hd">Hide done</button>
+  </div>
+  <div class="stats" id="stats"></div>
+  <main id="list"></main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = "https://zfgdqsoibiaclwpothio.supabase.co";
+const SUPABASE_KEY = "sb_publishable_QYTO_X-ruE_8W2DiJDIEHg_fRujf0xx"; // public publishable key; data is protected by sign-in + row level security
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{persistSession:true, autoRefreshToken:true, storageKey:"usa-trip-auth"}});
+const NAMES = {"adamkiil79@gmail.com":"Adam","edware02@hotmail.com":"Erin"};
+const GROUPS = {1:"Now (late Oct)",2:"November",3:"December, before departure (1–9 Dec)",4:"During the trip (10 Dec – 13 Jan)"};
+const $ = s => document.querySelector(s);
+let items = [], me = null, ownerF = localStorage.getItem("ownerF") || "all", hideDone = localStorage.getItem("hideDone")==="1", chan = null;
+
+function perthToday(){ return new Intl.DateTimeFormat("en-CA",{timeZone:"Australia/Perth"}).format(new Date()); }
+function fmtDate(d){ if(!d) return ""; const [y,m,dd]=d.split("-").map(Number); return new Date(Date.UTC(y,m-1,dd)).toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"}); }
+function fmtTs(t){ return t ? new Date(t).toLocaleString("en-AU",{timeZone:"Australia/Perth",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})+" AWST" : ""; }
+function el(tag, cls, text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
+function who(x){ return NAMES[(x||"").toLowerCase()] || x || ""; }
+
+function ownerOk(it){
+  if(ownerF==="all") return true;
+  if(ownerF==="shared") return it.owner==="both"||it.owner==="either";
+  return it.owner===ownerF || it.owner==="both" || it.owner==="either";
+}
+
+function render(){
+  document.querySelectorAll("#bar .chip[data-o]").forEach(b=>b.classList.toggle("on", b.dataset.o===ownerF));
+  $("#hd").classList.toggle("on", hideDone);
+  const today = perthToday(), list = $("#list"); list.textContent = "";
+  const shown = items.filter(ownerOk);
+  const open = shown.filter(i=>!i.done), over = open.filter(i=>i.due_date && i.due_date < today && i.status!=="info");
+  $("#stats").textContent = `${open.length} open · ${shown.length-open.length} done · ${over.length} overdue · ${open.filter(i=>i.urgent).length} urgent` + (ownerF!=="all" ? ` (filter: ${ownerF})` : "");
+  const sections = [1,2,3,4].map(g=>[GROUPS[g], open.filter(i=>i.grp_order===g)]);
+  if(!hideDone) sections.push(["Done", shown.filter(i=>i.done).sort((a,b)=>(b.done_at||"").localeCompare(a.done_at||""))]);
+  for(const [name, rows] of sections){
+    if(!rows.length) continue;
+    const h = el("h2", null, name+" "); h.appendChild(el("small", null, `(${rows.length})`)); list.appendChild(h);
+    for(const it of rows) list.appendChild(card(it, today));
+  }
+}
+
+function card(it, today){
+  const overdue = !it.done && it.due_date && it.due_date < today && it.status!=="info";
+  const c = el("div", "item"+(it.done?" done":"")+(overdue?" overdue":"")+(it.urgent&&!it.done?" urgent":""));
+  const b = el("button", "tick"+(it.done?" on":""), it.done?"✓":"");
+  b.setAttribute("aria-label", (it.done?"Untick ":"Tick ")+it.title);
+  b.onclick = () => toggle(it, b);
+  const body = el("div","body");
+  body.appendChild(el("div","title",it.title));
+  const m = el("div","meta");
+  if(it.due_date) m.appendChild(el("span","tag"+(overdue?" bad":""), (overdue?"OVERDUE · ":"Due ")+fmtDate(it.due_date)));
+  if(it.urgent && !it.done) m.appendChild(el("span","tag warn","URGENT"));
+  m.appendChild(el("span","tag", it.owner==="both"?"Both":it.owner==="either"?"Either":it.owner));
+  if(it.category) m.appendChild(el("span","tag",it.category));
+  if(it.status==="info") m.appendChild(el("span","tag info","info"));
+  if(it.status==="unknown") m.appendChild(el("span","tag unk","status unknown – check"));
+  if(it.addition) m.appendChild(el("span","tag unk","added (not in §12)"));
+  if(it.done) m.appendChild(el("span","tag ok", "✓ "+who(it.done_by)+(it.done_at?" · "+fmtTs(it.done_at):"")));
+  body.appendChild(m);
+  const d = el("details"); d.appendChild(el("summary",null,"Details & booking refs"));
+  const dl = el("div","dl");
+  const row = (k,v,cls) => { if(!v) return; const r=el("div"); r.appendChild(el("b",null,k+": ")); r.appendChild(el("span",cls||null,v)); dl.appendChild(r); };
+  row("Booking refs", it.booking_refs, "refs");
+  row("When (AWST)", it.when_awst); row("When (local)", it.when_local);
+  row("Why this date", it.due_note); row("How", it.how); row("Notes", it.notes);
+  row("Priority", it.priority); row("Status", it.status); row("Source", it.source); row("Item id", it.id);
+  d.appendChild(dl); body.appendChild(d);
+  c.appendChild(b); c.appendChild(body);
+  return c;
+}
+
+async function toggle(it, btn){
+  btn.disabled = true;
+  const want = !it.done;
+  const { data, error } = await sb.from("items").update({done:want}).eq("id", it.id).select().single();
+  btn.disabled = false;
+  if(error){ alert("Could not save: "+error.message); return; }
+  upsert(data); render();
+}
+
+function upsert(row){ const i = items.findIndex(x=>x.id===row.id); if(i>=0) items[i]=row; else items.push(row); items.sort((a,b)=>a.sort-b.sort); }
+
+async function load(){
+  const { data, error } = await sb.from("items").select("*").order("sort");
+  if(error){ $("#stats").textContent = "Load failed: "+error.message; return; }
+  items = data; render();
+}
+
+function subscribe(){
+  if(chan) sb.removeChannel(chan);
+  chan = sb.channel("items-live")
+    .on("postgres_changes", {event:"*", schema:"public", table:"items"}, p => { if(p.new && p.new.id){ upsert(p.new); render(); } })
+    .subscribe(s => $("#live").classList.toggle("on", s==="SUBSCRIBED"));
+}
+
+async function show(session){
+  me = session && session.user;
+  $("#login").classList.toggle("hidden", !!me);
+  $("#app").classList.toggle("hidden", !me);
+  $("#out").classList.toggle("hidden", !me);
+  $("#me").textContent = me ? who(me.email) : "";
+  if(me){ await load(); subscribe(); } else { items=[]; if(chan){ sb.removeChannel(chan); chan=null; } }
+}
+
+$("#lf").onsubmit = async e => {
+  e.preventDefault(); $("#err").textContent = "";
+  const { error } = await sb.auth.signInWithPassword({email:$("#em").value.trim(), password:$("#pw").value});
+  if(error) $("#err").textContent = error.message;
+};
+$("#out").onclick = () => { if(confirm("Sign out on this device?")) sb.auth.signOut(); };
+document.querySelectorAll("#bar .chip[data-o]").forEach(b => b.onclick = () => { ownerF=b.dataset.o; localStorage.setItem("ownerF",ownerF); render(); });
+$("#hd").onclick = () => { hideDone=!hideDone; localStorage.setItem("hideDone",hideDone?"1":"0"); render(); };
+document.addEventListener("visibilitychange", () => { if(document.visibilityState==="visible" && me){ load(); subscribe(); } });
+
+let lastUser;
+sb.auth.onAuthStateChange((ev, session) => {
+  const id = session && session.user && session.user.id;
+  if(ev==="TOKEN_REFRESHED" && id===lastUser) return;
+  lastUser = id; setTimeout(() => show(session), 0);
+});
+</script>
+</body>
+</html>
