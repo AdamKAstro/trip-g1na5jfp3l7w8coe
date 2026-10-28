@@ -1,5 +1,5 @@
 // App-shell cache only. Never caches Supabase (trip data, auth) responses.
-const VERSION = "trip-shell-v2-20261028";
+const VERSION = "trip-shell-v3-20261028b";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png"];
 const LIB = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js";
 self.addEventListener("install", e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL.concat(LIB))).then(() => self.skipWaiting())); });

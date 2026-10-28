@@ -2,7 +2,7 @@
 <html lang="en-AU">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f6f5f2">
@@ -46,7 +46,7 @@
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-padding-top:150px}
 body{margin:0;font:16px/1.45 var(--font);background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent;overflow-x:hidden;min-height:100dvh}
-button,input{font:inherit;color:inherit}
+button,input,textarea,select{font:inherit;color:inherit}
 button{cursor:pointer;touch-action:manipulation}
 :focus-visible{outline:3px solid var(--pri);outline-offset:2px;border-radius:12px}
 .hidden{display:none!important}
@@ -241,6 +241,76 @@ dialog.sheet::backdrop{background:rgba(8,10,16,.45);-webkit-backdrop-filter:blur
 .srow small{display:block;font-weight:500;color:var(--mut);font-size:13px}
 .sheet-note{font-size:13px;color:var(--mut);margin:14px 10px 0;line-height:1.5}
 
+
+/* ---------- Comments & suggestions ---------- */
+.cmt{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 9px 0 7px;border-radius:999px;font-size:12.5px;font-weight:800;background:var(--pri-soft);color:var(--pri-ink2);font-variant-numeric:tabular-nums}
+.cmt svg{width:15px;height:15px}
+.cmt.hot{background:var(--pri);color:var(--pri-ink)}
+.cbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:50px;border-radius:14px;border:1.5px solid color-mix(in srgb,var(--pri) 35%,transparent);background:var(--pri-soft);color:var(--pri-ink2);font-size:15.5px;font-weight:700;transition:transform .12s var(--ease)}
+.cbtn:active{transform:scale(.98)}
+.thread{display:grid;gap:8px}
+.cm{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:10px 12px;position:relative}
+.card .cm{background:var(--bg2)}
+.cm-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
+.cm-h b{font-size:14px}
+.cm-t{color:var(--mut);font-size:12.5px}
+.avatar.sm{width:24px;height:24px;font-size:12px}
+.spill{margin-left:auto;display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap}
+.spill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.st-new{background:var(--pri-soft);color:var(--pri-ink2)}
+.st-applied{background:var(--ok-soft);color:var(--ok)}
+.st-answered{background:var(--info-soft);color:var(--info)}
+.st-declined{background:var(--bg2);color:var(--mut)}
+.st-needs_adam{background:var(--warn-soft);color:var(--warn)}
+.cm-b{margin-top:6px;font-size:15px;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
+.cm-p{margin-top:6px;display:flex;flex-wrap:wrap;gap:6px}
+.cm-p span{font-size:12.5px;font-weight:700;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:2px 8px;color:var(--ink2)}
+.cm-r{margin-top:8px;padding:8px 10px;border-radius:12px;background:var(--surface);border-left:3px solid var(--ok);font-size:14.5px;white-space:pre-wrap;overflow-wrap:anywhere}
+.cm-r .by{display:block;font-size:12px;font-weight:800;color:var(--mut);margin-bottom:2px;white-space:normal}
+.cm-x{border:0;background:transparent;color:var(--bad);font-size:13px;font-weight:700;height:40px;padding:0 4px;margin:2px 0 -8px}
+.cm-item{display:flex;align-items:center;gap:6px;width:100%;border:0;background:transparent;padding:0 0 8px;text-align:left;font-size:13.5px;font-weight:700;color:var(--pri-ink2);min-height:32px}
+.cm-item span{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.svlist{display:grid;gap:10px;padding-bottom:10px}
+.svlist .cm{background:var(--surface);box-shadow:var(--shadow);border-radius:var(--r);padding:12px 14px}
+.seg{display:flex;gap:4px;padding:4px;border-radius:999px;background:var(--bg2);margin:6px 0 14px}
+.seg button{flex:1;height:42px;border:0;border-radius:999px;background:transparent;font-size:14.5px;font-weight:700;color:var(--ink2)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.svh{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:8px 4px 2px}
+.svh h2{margin:0;font-size:24px;font-weight:800;letter-spacing:-.02em}
+.svh p{margin:2px 0 0;color:var(--ink2);font-size:14px}
+.chip.cmc[aria-pressed="true"]{background:var(--pri);border-color:var(--pri);color:var(--pri-ink)}
+.addfab{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(env(safe-area-inset-bottom) + 18px);z-index:31;height:60px;min-width:60px;padding:0 22px 0 18px;border-radius:20px;border:0;
+  background:linear-gradient(135deg,#3346d3,#6a4ff0 60%,#c4447a);color:#fff;font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px;box-shadow:0 10px 28px rgba(51,70,211,.42);transition:transform .2s var(--ease),padding .25s var(--ease),bottom .35s var(--ease),min-width .25s}
+.addfab:active{transform:scale(.94)}
+.addfab .lbl{max-width:80px;overflow:hidden;white-space:nowrap;transition:max-width .25s var(--ease),opacity .2s}
+.addfab.mini{padding:0 18px}
+.addfab.mini .lbl{max-width:0;opacity:0}
+body.snacking .addfab{bottom:calc(env(safe-area-inset-bottom) + 86px)}
+.fab{bottom:calc(env(safe-area-inset-bottom) + 90px)!important;right:max(18px,env(safe-area-inset-right));width:52px;height:52px;border-radius:16px}
+body.snacking .fab{bottom:calc(env(safe-area-inset-bottom) + 158px)!important}
+#cs .sheet-in{padding-top:8px}
+.cs-h{margin:0 0 2px;font-size:21px;font-weight:800;letter-spacing:-.015em}
+.cs-item{margin:0 0 14px;color:var(--ink2);font-size:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.qchips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.qchips .chip{height:40px;font-size:14px}
+.qchips .chip[aria-pressed="true"]{background:var(--pri);border-color:var(--pri);color:var(--pri-ink)}
+.cs-x{display:grid;gap:10px;margin:0 0 12px}
+.cs-x:empty{display:none}
+.cs-x label>span{display:block;font-size:12.5px;font-weight:700;color:var(--ink2);margin:0 0 6px 4px}
+.cs-x input[type=date]{width:100%;height:50px;padding:0 14px;border-radius:14px;border:1.5px solid var(--line2);background:var(--surface);font-size:16px}
+.cs-x .row{display:flex;flex-wrap:wrap;gap:8px}
+.cs-x .chip[aria-pressed="true"]{background:var(--pri);border-color:var(--pri);color:var(--pri-ink)}
+.cs-x .dtxt{color:var(--pri-ink2);font-weight:800}
+textarea#csBody{width:100%;min-height:118px;max-height:36dvh;resize:vertical;padding:14px 16px;border-radius:16px;border:1.5px solid var(--line2);background:var(--surface);font-size:16px;line-height:1.45;outline:none}
+textarea#csBody:focus{border-color:var(--pri);box-shadow:0 0 0 4px var(--pri-soft)}
+.cs-hint{font-size:12.5px;color:var(--mut);margin:8px 4px 14px;line-height:1.45}
+.cs-err{color:var(--bad);font-size:14px;margin:-6px 4px 10px;min-height:0}
+.cs-btns{display:flex;gap:10px}
+.cs-btns .ghost{flex:0 0 auto;width:auto;padding:0 20px;background:transparent;color:var(--ink2);box-shadow:none;border:1.5px solid var(--line2)}
+.cs-btns .btn{flex:1}
+.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+
 @media (min-width:760px){
   .stats{grid-template-columns:repeat(3,minmax(0,160px))}
   .hero{padding:26px 26px 20px}
@@ -295,6 +365,7 @@ dialog.sheet::backdrop{background:rgba(8,10,16,.45);-webkit-backdrop-filter:blur
         <button class="chip" data-f="other" aria-pressed="false"><span id="otherLbl">Erin's</span> <span class="n" data-n="other"></span></button>
         <button class="chip urg" data-f="urgent" aria-pressed="false">Urgent <span class="n" data-n="urgent"></span></button>
         <button class="chip" data-f="done" aria-pressed="false">Done <span class="n" data-n="done"></span></button>
+        <button class="chip cmc" data-f="notes" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>Suggestions <span class="n" data-n="notes"></span></button>
       </div>
     </div>
   </header>
@@ -302,7 +373,23 @@ dialog.sheet::backdrop{background:rgba(8,10,16,.45);-webkit-backdrop-filter:blur
     <div id="list" aria-live="polite"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
   </main>
   <button class="fab" id="fab" aria-label="Back to top"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14l6-6 6 6"/></svg></button>
+  <button class="addfab" id="addFab" aria-label="Add a new item or general note"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Add</span></button>
 </div>
+
+<dialog class="sheet" id="cs" aria-labelledby="csTitle">
+  <form class="sheet-in" id="csForm" method="dialog" novalidate>
+    <div class="grab" aria-hidden="true"></div>
+    <h2 class="cs-h" id="csTitle">Comment or change</h2>
+    <p class="cs-item" id="csItem"></p>
+    <div class="qchips" id="csChips" role="group" aria-label="Quick starters"></div>
+    <div class="cs-x" id="csExtra"></div>
+    <label class="sr" for="csBody">Your message</label>
+    <textarea id="csBody" rows="4" enterkeyhint="enter" autocapitalize="sentences" placeholder="Type your comment or change…"></textarea>
+    <p class="cs-hint" id="csHint">Goes to Grok Bot, which makes the change and replies here. Nothing on the list changes until it does.</p>
+    <p class="cs-err" id="csErr" role="alert"></p>
+    <div class="cs-btns"><button type="button" class="btn ghost" id="csCancel">Cancel</button><button type="submit" class="btn" id="csSend"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-6.5z"/></svg>Send</button></div>
+  </form>
+</dialog>
 
 <div class="snack" id="snack" role="status" aria-live="polite"><span id="snackTxt"></span><button id="snackBtn" class="hidden">Undo</button></div>
 
@@ -311,6 +398,7 @@ dialog.sheet::backdrop{background:rgba(8,10,16,.45);-webkit-backdrop-filter:blur
     <div class="grab" aria-hidden="true"></div>
     <div class="who-row"><span class="avatar" id="sAvatar">A</span><div><b id="sName">Adam</b><span id="sEmail"></span></div></div>
     <button class="srow" id="installBtn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M12 7v7M9 11l3 3 3-3"/></svg><span>Add to Home screen<small id="installHint">Opens like an app, full screen</small></span></button>
+    <button class="srow" id="sugBtn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg><span>Comments &amp; suggestions<small id="sugHint">Everything you've both sent to Grok Bot</small></span></button>
     <button class="srow" id="refreshBtn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7"/></svg><span>Refresh list</span></button>
     <button class="srow danger" id="outBtn"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3M10 17l-5-5 5-5M5 12h11"/></svg><span>Sign out on this phone</span></button>
     <p class="sheet-note">Items come from the USA bot's notes (findings.md §12) and are unverified until Adam's master review. Always check against the actual booking.</p>
@@ -329,10 +417,11 @@ const CAT = {flights:"✈️",stays:"🏨",cars:"🚗",cruise:"🛳️",activiti
 const TRIP_START = "2026-12-10", TRIP_END = "2027-01-13";
 const $ = s => document.querySelector(s);
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-let items = [], me = null, myName = "", chan = null, loaded = false;
+let items = [], sugg = [], me = null, myName = "", chan = null, loaded = false;
 let filter = localStorage.getItem("f2") || "all";
 let collapsed = JSON.parse(localStorage.getItem("collapsed2") || '{"done":true}');
 const openIds = new Set();
+let sview = localStorage.getItem("sv") || "open";
 let query = "";
 
 /* ---------- helpers ---------- */
@@ -393,6 +482,7 @@ function renderHeader(){
   const cnt = {all:items.length, mine:0, other:0, urgent:0, done:0};
   const keep = filter; for(const f of ["mine","other","urgent","done"]){ filter=f; cnt[f]=items.filter(i=>matchesFilter(i) && (f==="done"||!isDone(i))).length; } filter=keep;
   cnt.all = items.filter(i=>!isDone(i)).length;
+  cnt.notes = sugg.filter(isOpenS).length;
   document.querySelectorAll("[data-n]").forEach(s => s.textContent = cnt[s.dataset.n] || "");
   document.querySelectorAll("#chips .chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f===filter)));
 }
@@ -412,6 +502,8 @@ function cardHTML(it){
   if(info && !d) meta += `<span class="pill info">FYI</span>`;
   if(it.status==="unknown" && !d) meta += `<span class="pill unk">Check status</span>`;
   if(d) meta += `<span class="pill ok">✓ ${esc(who(it.done_by)||"Done")}${it.done_at?" · "+esc(fmtTs(it.done_at).replace(" AWST","")):""}</span>`;
+  const th = threadOf(it.id);
+  if(th.length){ const hot = th.some(isOpenS); meta += `<span class="cmt ${hot?"hot":""}" aria-label="${th.length} comment${th.length>1?"s":""}">${BUBBLE}${th.length}</span>`; }
   if(it.category) meta += `<span class="pill cat">${CAT[it.category]||"•"} ${esc(it.category)}</span>`;
   const row = (k,v) => (v && !/^[\s—–-]*$/.test(v)) ? `<div><div class="k">${k}</div><div class="v">${esc(v)}</div></div>` : "";
   let dl = "";
@@ -419,6 +511,7 @@ function cardHTML(it){
   if(it.due_date) dl += row("Due", fmtDate(it.due_date,{weekday:"long",year:"numeric",month:"long"}));
   dl += row("When (Perth time)", it.when_awst) + row("When (local)", it.when_local) + row("How", it.how) + row("Notes", it.notes) + row("Why this date", it.due_note);
   if(d) dl += `<div class="stamp">✓ Ticked by ${esc(who(it.done_by)||"—")}${it.done_at?" · "+esc(fmtTs(it.done_at)):""}</div>`;
+  dl += `<div><div class="k">Comments${th.length?" · "+th.length:""}</div><div class="thread">${th.slice().reverse().map(x=>cmHTML(x,false)).join("")}<button class="cbtn" data-cmt="${esc(it.id)}">${BUBBLE}Comment or change</button></div></div>`;
   dl += row("Source", [it.source, it.priority && ("priority "+it.priority), it.addition && "added (not in §12)", "id "+it.id].filter(Boolean).join(" · "));
   return `<article class="${cls}" data-id="${esc(it.id)}">
 <button class="tick" role="checkbox" aria-checked="${d}" aria-label="${d?"Done":"Not done"}: ${esc(it.title)}"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span><span class="burst" aria-hidden="true">${[0,60,120,180,240,300].map(a=>`<i style="--a:${a}deg"></i>`).join("")}</span></button>
@@ -449,7 +542,9 @@ function render(){
   const shown = items.filter(i => matchesFilter(i) && matchesQuery(i));
   let html = "";
   if(filter==="all" && !query) html += heroHTML();
-  if(filter==="done"){
+  if(filter==="notes"){
+    html += suggViewHTML();
+  } else if(filter==="done"){
     const rows = shown.sort((a,b)=>(b.done_at||"").localeCompare(a.done_at||""));
     html += rows.length ? secHTML("done-only","Done","Most recent first","✅",rows) : emptyHTML("Nothing ticked yet","Ticked items will appear here.");
   } else {
@@ -515,6 +610,10 @@ $("#list").addEventListener("click", e => {
   if(tick){ const id = tick.closest(".card").dataset.id; const it = items.find(x=>x.id===id); if(it) setDone(id, !isDone(it)); return; }
   const cp = e.target.closest(".copy");
   if(cp){ const it = items.find(x=>x.id===cp.dataset.copy); if(it){ navigator.clipboard?.writeText(it.booking_refs).then(()=>{ snack("Booking refs copied"); vib(8); }, ()=>snack("Couldn't copy – press and hold the text instead")); } return; }
+  const cb = e.target.closest("[data-cmt]"); if(cb){ openCS(cb.dataset.cmt); return; }
+  const ds = e.target.closest("[data-del-s]"); if(ds){ delS(ds.dataset.delS); return; }
+  const gt = e.target.closest("[data-goto]"); if(gt){ gotoItem(gt.dataset.goto); return; }
+  const sv = e.target.closest("[data-sv]"); if(sv){ sview = sv.dataset.sv; localStorage.setItem("sv", sview); vib(5); render(); return; }
   const body = e.target.closest(".cbody");
   if(body){ const c = body.closest(".card"), id = c.dataset.id, open = !c.classList.contains("open");
     c.classList.toggle("open", open); body.setAttribute("aria-expanded", String(open)); open ? openIds.add(id) : openIds.delete(id); vib(5); return; }
@@ -530,12 +629,162 @@ let qT; $("#q").addEventListener("input", e => { clearTimeout(qT); qT = setTimeo
 $("#qClear").onclick = () => { $("#q").value=""; query=""; render(); $("#q").focus(); };
 $("#searchBtn").onclick = () => { const s = $("#searchBox"), o = !s.classList.contains("open"); s.classList.toggle("open", o); $("#searchBtn").setAttribute("aria-expanded", String(o)); if(o) $("#q").focus(); else { $("#q").value=""; if(query){ query=""; render(); } } };
 const topEl = $("#top"), fab = $("#fab");
-addEventListener("scroll", () => { const y = scrollY; topEl.classList.toggle("scrolled", y > 4); fab.classList.toggle("show", y > 900); }, {passive:true});
+addEventListener("scroll", () => { const y = scrollY; topEl.classList.toggle("scrolled", y > 4); fab.classList.toggle("show", y > 900); $("#addFab").classList.toggle("mini", y > 240); }, {passive:true});
 fab.onclick = () => window.scrollTo({top:0, behavior: reduce?"auto":"smooth"});
+
+
+/* ---------- comments & suggestions ---------- */
+const BUBBLE = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>`;
+const SLBL = {new:"Sent to bot",applied:"Done",answered:"Answered",declined:"Not changed",needs_adam:"Needs Adam"};
+const isOpenS = x => x.status==="new" || x.status==="needs_adam";
+const threadOf = id => sugg.filter(x=>x.item_id===id);
+const GNAME = {1:"Now",2:"November",3:"December",4:"During the trip"};
+function propHTML(p){
+  if(!p || typeof p!=="object") return "";
+  const out = [];
+  if(p.due_date) out.push("Due → "+fmtDate(p.due_date));
+  if(p.owner) out.push("Owner → "+p.owner);
+  if(p.group) out.push("Section → "+(GNAME[p.group]||p.group));
+  if(p.remove) out.push("Remove item");
+  if(p.done) out.push("Mark done");
+  if(p.reword) out.push("New wording");
+  return out.length ? `<div class="cm-p">${out.map(t=>`<span>${esc(t)}</span>`).join("")}</div>` : "";
+}
+function cmHTML(x, withItem){
+  const n = who(x.author_email) || "Someone", erin = n==="Erin";
+  const mine = me && (x.author_email||"").toLowerCase()===(me.email||"").toLowerCase();
+  let head = "";
+  if(withItem){
+    const it = x.item_id && items.find(i=>i.id===x.item_id);
+    const lbl = it ? it.title : x.kind==="new_item" ? "New item request" : x.item_id ? "Item "+x.item_id : "General note";
+    head = `<button class="cm-item" ${it?`data-goto="${esc(it.id)}"`:"disabled"}>${it?"📍":x.kind==="new_item"?"✨":"📝"} <span>${esc(lbl)}</span></button>`;
+  }
+  return `<div class="cm" data-sid="${esc(x.id)}">${head}<div class="cm-h"><span class="avatar sm ${erin?"erin":""}">${esc(n[0])}</span><b>${esc(n)}</b><span class="cm-t">${esc(fmtTs(x.created_at))}</span><span class="spill st-${esc(x.status)}">${esc(SLBL[x.status]||x.status)}</span></div>
+<div class="cm-b">${esc(x.body)}</div>${propHTML(x.proposed)}
+${x.reply?`<div class="cm-r"><span class="by">🤖 Grok Bot${x.handled_at?" · "+esc(fmtTs(x.handled_at)):""}</span>${esc(x.reply)}</div>`:""}
+${mine && x.status==="new"?`<button class="cm-x" data-del-s="${esc(x.id)}">Delete</button>`:""}</div>`;
+}
+function suggViewHTML(){
+  const rows = sugg.filter(x => sview==="all" ? true : sview==="open" ? isOpenS(x) : !isOpenS(x));
+  const nOpen = sugg.filter(isOpenS).length;
+  let h = `<div class="svh"><div><h2>Suggestions</h2><p>${nOpen} waiting · ${sugg.length-nOpen} done</p></div></div>
+<div class="seg" role="group" aria-label="Show"><button data-sv="open" aria-pressed="${sview==="open"}">Open</button><button data-sv="done" aria-pressed="${sview==="done"}">Done</button><button data-sv="all" aria-pressed="${sview==="all"}">All</button></div>`;
+  h += rows.length ? `<div class="svlist">${rows.map(x=>cmHTML(x,true)).join("")}</div>`
+    : emptyHTML(sview==="open"?"Nothing waiting":"Nothing here yet", sugg.length ? "Try another tab above." : "Tap “Comment or change” on any item, or the + button, to send Grok Bot a note.");
+  return h;
+}
+function upsertS(row){ const i = sugg.findIndex(x=>x.id===row.id); if(i>=0) sugg[i]=row; else sugg.push(row); sugg.sort((a,b)=>b.created_at.localeCompare(a.created_at)); }
+async function loadS(){
+  const { data, error } = await sb.from("suggestions").select("*").order("created_at",{ascending:false});
+  if(!error){ sugg = data; render(); }
+}
+
+/* comment / change sheet */
+const cs = $("#cs");
+const OWN = ["Adam","Erin","both","either"], OWNL = {Adam:"Adam",Erin:"Erin",both:"Both",either:"Either"};
+const ITEM_CHIPS = [
+  {k:"date",  t:"📅 Change date", kind:"edit", start:"Please change the due date to "},
+  {k:"owner", t:"👤 Change owner", kind:"edit", start:"Please make this one for "},
+  {k:"reword",t:"✏️ Reword", kind:"edit", start:it=>"Please reword it to: "+it.title},
+  {k:"note",  t:"📝 Add a note", kind:"comment", start:"Note: "},
+  {k:"done",  t:"✅ This is done/booked", kind:"done_note", start:"This is done/booked. Details: "},
+  {k:"remove",t:"🗑️ Remove it", kind:"edit", start:"Please remove this item because "}];
+const NEW_CHIPS = [
+  {k:"item", t:"✨ New to-do", kind:"new_item", start:"Please add: "},
+  {k:"gnote",t:"📝 General note", kind:"comment", start:""}];
+let csState = null;
+function openDlg(d){ d.showModal(); try{ history.pushState({dlg:d.id},""); }catch(e){} }
+for(const d of document.querySelectorAll("dialog")) d.addEventListener("close", () => { if(history.state && history.state.dlg===d.id) history.back(); });
+addEventListener("popstate", () => document.querySelectorAll("dialog[open]").forEach(x=>x.close()));
+function openCS(itemId){
+  const it = itemId ? items.find(i=>i.id===itemId) : null;
+  csState = {item: it, chip:null, starter:"", due:"", owner:"", group: it ? null : 0};
+  $("#csTitle").textContent = it ? "Comment or change" : "Add a new item or note";
+  $("#csItem").textContent = it ? it.title : "Tell Grok Bot what to add, or leave a general note for the whole trip.";
+  $("#csChips").innerHTML = (it?ITEM_CHIPS:NEW_CHIPS).map(c=>`<button type="button" class="chip" data-ck="${c.k}" aria-pressed="false">${c.t}</button>`).join("");
+  $("#csExtra").innerHTML = ""; $("#csErr").textContent = ""; $("#csBody").value = "";
+  $("#csBody").placeholder = it ? "Type your comment or change…" : "What should be added? Or type a general note…";
+  vib(6); openDlg(cs);
+  if(!it) pickChip("item");
+  setTimeout(()=>{ if(it) $("#csBody").focus({preventScroll:true}); }, 60);
+}
+function extraHTML(){
+  const st = csState, k = st.chip && st.chip.k;
+  const ownRow = lbl => `<label><span>${lbl}</span></label><div class="row" data-grp="owner">${OWN.map(o=>`<button type="button" class="chip" data-ov="${o}" aria-pressed="${st.owner===o}">${OWNL[o]}</button>`).join("")}</div>`;
+  const dlab = lbl => `<label><span>${lbl} <b class="dtxt" id="csDueTxt">${st.due?"· "+esc(fmtDate(st.due)):""}</b></span><input type="date" id="csDue" value="${esc(st.due)}"></label>`;
+  if(k==="date") return dlab("New due date (optional)");
+  if(k==="owner") return ownRow("Who should own it?");
+  if(k==="item") return `<div><label><span>Which part of the trip? (optional)</span></label><div class="row">${[1,2,3,4].map(g=>`<button type="button" class="chip" data-gv="${g}" aria-pressed="${st.group===g}">${GROUPS[g][2]} ${GNAME[g]}</button>`).join("")}</div></div>
+${dlab("Due date (optional)")}<div>${ownRow("Whose job? (optional)")}</div>`;
+  return "";
+}
+function pickChip(k){
+  const list = csState.item ? ITEM_CHIPS : NEW_CHIPS;
+  const c = list.find(x=>x.k===k); if(!c) return;
+  const ta = $("#csBody"), cur = ta.value;
+  const same = csState.chip && csState.chip.k===k;
+  csState.chip = same && csState.item ? null : c;
+  document.querySelectorAll("#csChips .chip").forEach(b=>b.setAttribute("aria-pressed", String(!!csState.chip && b.dataset.ck===csState.chip.k)));
+  const starter = csState.chip ? (typeof c.start==="function" ? c.start(csState.item) : c.start) : "";
+  if(!cur.trim() || cur===csState.starter){ ta.value = starter; }
+  csState.starter = starter;
+  $("#csExtra").innerHTML = csState.chip ? extraHTML() : "";
+  vib(5); ta.focus({preventScroll:true}); const L = ta.value.length; try{ ta.setSelectionRange(L,L); }catch(e){}
+}
+$("#csChips").addEventListener("click", e => { const b = e.target.closest("[data-ck]"); if(b) pickChip(b.dataset.ck); });
+$("#csExtra").addEventListener("click", e => {
+  const o = e.target.closest("[data-ov]"), g = e.target.closest("[data-gv]");
+  if(o){ csState.owner = csState.owner===o.dataset.ov ? "" : o.dataset.ov; vib(5);
+    const ta = $("#csBody"); if(csState.chip.k==="owner" && (ta.value===csState.starter || ta.value.startsWith(csState.chip.start))){ ta.value = csState.chip.start + (csState.owner?OWNL[csState.owner]+".":""); csState.starter = ta.value; }
+    $("#csExtra").innerHTML = extraHTML(); }
+  if(g){ const v = Number(g.dataset.gv); csState.group = csState.group===v ? 0 : v; vib(5); $("#csExtra").innerHTML = extraHTML(); }
+});
+$("#csExtra").addEventListener("change", e => { if(e.target.id==="csDue"){ csState.due = e.target.value; const dt=$("#csDueTxt"); if(dt) dt.textContent = csState.due ? "· "+fmtDate(csState.due) : "";
+  const ta = $("#csBody"); if(csState.chip.k==="date" && csState.due && (ta.value===csState.starter || ta.value===csState.chip.start)){ ta.value = csState.chip.start + fmtDate(csState.due,{weekday:"long",month:"long"}) + "."; csState.starter = ta.value; } } });
+$("#csCancel").onclick = () => cs.close();
+cs.addEventListener("click", e => { if(e.target === cs) cs.close(); });
+$("#csForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const st = csState, body = $("#csBody").value.trim();
+  if(!body || body===(st.starter||"").trim()){ $("#csErr").textContent = "Type a few words first."; const ta=$("#csBody"); ta.classList.remove("shake"); void ta.offsetWidth; ta.classList.add("shake"); ta.focus(); vib([30,40,30]); return; }
+  const k = st.chip && st.chip.k;
+  const kind = st.chip ? st.chip.kind : "comment";
+  const proposed = {};
+  if(st.due && (k==="date"||k==="item")) proposed.due_date = st.due;
+  if(st.owner && (k==="owner"||k==="item")) proposed.owner = st.owner;
+  if(st.group && k==="item") proposed.group = st.group;
+  if(k==="remove") proposed.remove = true;
+  if(k==="done") proposed.done = true;
+  if(k==="reword") proposed.reword = true;
+  const b = $("#csSend"); b.disabled = true; b.lastChild.textContent = "Sending…"; $("#csErr").textContent = "";
+  const { data, error } = await sb.from("suggestions").insert({item_id: st.item ? st.item.id : null, kind, body, proposed: Object.keys(proposed).length ? proposed : null}).select().single();
+  b.disabled = false; b.lastChild.textContent = "Send";
+  if(error){ $("#csErr").textContent = "Couldn't send – check your connection and try again."; vib([40,60,40]); return; }
+  upsertS(data); if(st.item) openIds.add(st.item.id);
+  cs.close(); render(); vib([14,50,22]);
+  snack(st.item ? "Sent to Grok Bot ✓ It'll reply on this item." : "Sent to Grok Bot ✓ See it under Suggestions.");
+});
+async function delS(id){
+  if(!confirm("Delete this comment?")) return;
+  const { error } = await sb.from("suggestions").delete().eq("id", id);
+  if(error){ snack("Couldn't delete – try again"); return; }
+  sugg = sugg.filter(x=>x.id!==id); render(); snack("Comment deleted");
+}
+function gotoItem(id){
+  vib(6); openIds.add(id); query=""; $("#q").value="";
+  const it = items.find(i=>i.id===id);
+  filter = it && isDone(it) ? "done" : "all"; localStorage.setItem("f2", filter);
+  for(const k of Object.keys(collapsed)) collapsed[k]=false;
+  render();
+  const el = document.querySelector(`.card[data-id="${CSS.escape(id)}"]`);
+  if(el){ el.scrollIntoView({behavior: reduce?"auto":"smooth", block:"center"}); el.classList.add("flash"); }
+}
+$("#addFab").onclick = () => openCS(null);
+$("#sugBtn").onclick = () => { sheet.close(); setFilter("notes"); };
 
 /* account sheet */
 const sheet = $("#sheet");
-$("#meBtn").onclick = () => { vib(6); sheet.showModal(); };
+$("#meBtn").onclick = () => { vib(6); openDlg(sheet); };
 sheet.addEventListener("click", e => { if(e.target === sheet) sheet.close(); });
 $("#outBtn").onclick = async () => { if(confirm("Sign out on this phone?")){ sheet.close(); await sb.auth.signOut(); } };
 $("#refreshBtn").onclick = async () => { sheet.close(); await load(); subscribe(); snack("List refreshed"); };
@@ -567,6 +816,7 @@ async function load(){
   const { data, error } = await sb.from("items").select("*").order("sort");
   if(error){ $("#list").innerHTML = emptyHTML("Couldn't load the list", error.message); return; }
   items = data; loaded = true; render();
+  loadS();
 }
 function subscribe(){
   if(chan) sb.removeChannel(chan);
@@ -584,6 +834,18 @@ function subscribe(){
         const el = document.querySelector(`.card[data-id="${CSS.escape(p.new.id)}"]`); if(el) el.classList.add("flash");
       }
     })
+    .on("postgres_changes", {event:"*", schema:"public", table:"suggestions"}, p => {
+      if(p.eventType==="DELETE"){ const id = p.old && p.old.id; if(id){ sugg = sugg.filter(x=>x.id!==id); render(); } return; }
+      if(!p.new || !p.new.id) return;
+      const old = sugg.find(x=>x.id===p.new.id);
+      upsertS(p.new); render();
+      const mine = (p.new.author_email||"").toLowerCase() === (me?.email||"").toLowerCase();
+      const it = p.new.item_id && items.find(i=>i.id===p.new.item_id);
+      const short = t => (t||"").length>60 ? t.slice(0,58)+"…" : (t||"");
+      if(p.eventType==="INSERT" && !old && !mine){ snack(`${who(p.new.author_email)||"Someone"} commented: ${short(p.new.body)}`); vib(12); }
+      else if(old && (old.status!==p.new.status || old.reply!==p.new.reply) && p.new.status!=="new"){ snack(`Grok Bot: ${SLBL[p.new.status]||""}${it?" · "+short(it.title):""}`); vib(12); }
+      const el = it && document.querySelector(`.card[data-id="${CSS.escape(it.id)}"]`); if(el) el.classList.add("flash");
+    })
     .subscribe(s => $("#live").classList.toggle("on", s==="SUBSCRIBED"));
 }
 async function show(session){
@@ -598,7 +860,7 @@ async function show(session){
     $("#sName").textContent = myName; $("#sEmail").textContent = me.email;
     await load(); subscribe();
   } else {
-    items = []; loaded = false; $("#list").innerHTML = '<div class="skel"></div><div class="skel"></div>';
+    items = []; sugg = []; loaded = false; $("#list").innerHTML = '<div class="skel"></div><div class="skel"></div>';
     if(chan){ sb.removeChannel(chan); chan = null; }
   }
 }
