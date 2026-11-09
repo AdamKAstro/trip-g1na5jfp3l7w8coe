@@ -1,7 +1,7 @@
 {
   "name": "USA Trip – Adam & Erin",
   "short_name": "USA Trip",
-  "description": "Shared trip to-do list",
+  "description": "Shared trip list, with a kids itinerary and packing list",
   "id": "./",
   "start_url": "./",
   "scope": "./",
