@@ -375,6 +375,10 @@ textarea#csBody:focus{border-color:var(--pri);box-shadow:0 0 0 4px var(--pri-sof
 .k-form label{display:grid;gap:6px;font-size:13px;font-weight:800;color:var(--ink2)}
 .k-form input,.k-form select,#kItemTitle,#kItemQty,#kCodeIn,#kPass,#kPass2{width:100%;min-height:52px;border-radius:14px;border:1.5px solid var(--line2);background:var(--surface);padding:0 12px;font-size:17px}
 .k-code-val{font-size:28px;font-weight:800;letter-spacing:.04em;margin:6px 0}
+.k-share{display:grid;gap:8px;margin:0 0 14px}
+.k-share .btn{min-height:56px}
+.k-share .btn.ghost{background:transparent;color:var(--ink);box-shadow:none;border:1.5px solid var(--line2)}
+.k-linkbox{margin:0;padding:12px;border-radius:14px;background:var(--bg2);font-size:14px;line-height:1.4;word-break:break-all}
 .k-tools .srow{min-height:48px;padding:0}
 #kSnack{z-index:45}
 body.k-snacking #kAdd{bottom:calc(env(safe-area-inset-bottom) + 96px)}
@@ -399,8 +403,7 @@ body.k-snacking #kAdd{bottom:calc(env(safe-area-inset-bottom) + 96px)}
       <button class="btn" type="submit" id="lgBtn">Sign in</button>
       <p id="err" role="alert"></p>
     </form>
-    <button type="button" class="btn k-ghost" id="kidEntry">Kids — invite code</button>
-    <p class="lg-foot">Parents sign in here. Kids use an invite code from Mum or Dad.</p>
+    <p class="lg-foot">Parents sign in here. Kids open the link Mum or Dad shares.</p>
   </div>
 </section>
 
@@ -471,19 +474,6 @@ body.k-snacking #kAdd{bottom:calc(env(safe-area-inset-bottom) + 96px)}
   </form>
 </dialog>
 
-<dialog class="sheet" id="kInvite" aria-labelledby="kInviteTitle">
-  <form class="sheet-in" id="kInviteForm">
-    <div class="grab"></div>
-    <h2 class="cs-h" id="kInviteTitle">Kids sign-in</h2>
-    <p class="cs-hint">Enter the code from Mum or Dad, then choose a password for this phone. Next time, sign in with the email they show you and that password.</p>
-    <label class="field"><span>Invite code</span><input id="kCodeIn" autocapitalize="characters" autocomplete="one-time-code" inputmode="text"></label>
-    <label class="field"><span>New password</span><input id="kPass" type="password" autocomplete="new-password" minlength="8"></label>
-    <label class="field"><span>Password again</span><input id="kPass2" type="password" autocomplete="new-password" minlength="8"></label>
-    <p class="cs-err" id="kInviteErr" role="alert"></p>
-    <div class="cs-btns"><button type="button" class="btn ghost" id="kInviteCancel">Cancel</button><button class="btn" type="submit" id="kInviteGo">Create my sign-in</button></div>
-  </form>
-</dialog>
-
 <dialog class="sheet" id="kAccount" aria-label="Your phone">
   <div class="sheet-in">
     <div class="grab"></div>
@@ -529,6 +519,7 @@ body.k-snacking #kAdd{bottom:calc(env(safe-area-inset-bottom) + 96px)}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
 <script src="kids-seed.js"></script>
 <script src="kids-sync.js"></script>
+<script src="kids-link.js"></script>
 <script src="kids-ui.js"></script>
 <script>
 "use strict";
@@ -1020,7 +1011,13 @@ document.addEventListener("visibilitychange", () => {
 });
 if(window.TripKidsUI) TripKidsUI.init(sb);
 const localPreview = (location.hostname==="localhost" || location.hostname==="127.0.0.1") && new URLSearchParams(location.search).get("preview");
+const kidToken = window.TripKidsLink ? TripKidsLink.takeFromLocation(location) : "";
 let lastUser;
+if(kidToken && !localPreview){
+  $("#login").classList.remove("hidden");
+  $("#err").textContent = "Opening the trip…";
+  TripKidsLink.redeem(sb, kidToken).then((res) => { if(!res.ok && !me) $("#err").textContent = res.message; });
+}
 if(localPreview && window.TripKidsUI){
   $("#login").classList.add("hidden");
   if(localPreview==="parent"){

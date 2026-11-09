@@ -6,7 +6,7 @@ This is not live until the migration below is applied on the existing Supabase p
 
 The same site (GitHub Pages) grows a kids area. Itinerary is the first tab. Packing is the second.
 
-- Each child has their own sign-in, created from a one-time code Mum or Dad generates.
+- Each child opens a link Mum or Dad shares. The link signs them in and stays on that phone. There is no code and no password to type.
 - They can add, edit, check, uncheck and delete packing rows, with undo.
 - Changes are queued on the phone first. The screen says **Saving…**, **Saved**, **On this phone — not saved to the family list yet**, or **Couldn't save — will keep trying**. **Saved** appears only after the server accepts the queue.
 - The queue is in IndexedDB, so a refresh or a closed browser keeps offline edits and retries them. Retries use the same operation id, so a dropped response cannot duplicate a row.
@@ -59,13 +59,15 @@ Realtime: the migration adds `packing_items` and `trip_itinerary` to `supabase_r
 
 ## Give a child their phone
 
-1. Parent signs in and opens **Kids → Packing**.
-2. Pick the child and tap **Set up their phone**.
-3. A code is shown once. It works for 7 days, then it is dead. Generating another code cancels the previous unused one.
-4. On the child’s phone, open the site, tap **Kids — invite code**, enter the code and choose a password (8–72 characters).
-5. Next time they use **Sign in** with the email shown next to the code and that password.
+1. Parent signs in and opens **Kids**.
+2. Pick the child and tap **Share link**. The phone’s share sheet opens. If it doesn’t, the link is copied.
+3. The child taps that link once. They land on the itinerary and stay signed in.
+4. The same link works again on a new phone. **Cancel link / make new link** turns the old one off, signs out phones already using it, and makes another.
+5. The screen shows when the current link was made.
 
-The emails are not inboxes:
+The link’s secret is only in the `#k=` part of the address. It is stored on the server as a hash. Applying `supabase/migrations/20261109133000_kids_share_links.sql` is required before Share link works. Then run `supabase/verify/kids_link_checks.sql`.
+
+The child emails are not inboxes:
 
 - liam@kids.usa-trip.invalid
 - ana@kids.usa-trip.invalid
