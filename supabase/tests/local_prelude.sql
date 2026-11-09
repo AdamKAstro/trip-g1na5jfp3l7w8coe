@@ -40,6 +40,21 @@ create table if not exists auth.users (
   is_anonymous boolean not null default false
 );
 
+create table if not exists auth.sessions (
+  id uuid primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  created_at timestamptz,
+  updated_at timestamptz
+);
+
+create table if not exists auth.refresh_tokens (
+  id bigint generated always as identity primary key,
+  token varchar,
+  user_id varchar,
+  revoked boolean,
+  session_id uuid
+);
+
 create table if not exists auth.identities (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users (id) on delete cascade,

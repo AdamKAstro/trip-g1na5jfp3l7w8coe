@@ -181,12 +181,28 @@
     } else {
       body = order.map((g) => `<section class="k-sec"><h3>${esc(g)}</h3>${groups[g].map(packRow).join("")}</section>`).join("");
     }
-    const who = state.mode === "parent" ? `<div class="k-who" role="tablist">${seed.CHILDREN.map((c) => `<button type="button" data-child="${c.id}" aria-pressed="${c.id === childId}">${esc(c.displayName)}</button>`).join("")}</div>` : "";
-    const invite = state.mode === "parent" && !state.preview ? `<button type="button" class="btn ghost" id="kInviteBtn">Set up ${esc(childById(childId).displayName)}’s phone</button><div id="kInviteOut"></div>` : "";
-    return `${who}<p class="k-count">${done} of ${rows.length} packed</p>
+    return `<p class="k-count">${done} of ${rows.length} packed</p>
       <p class="k-plan">Starter ideas — change, add or cross out anything. Nothing here is booked.</p>
-      ${statusHtml()}${invite}${body}
+      ${statusHtml()}${body}
       <button type="button" class="btn k-addday" id="kAddItem">Add an item</button>`;
+  }
+
+  function linkWhen(iso) {
+    if (!iso) return "No link yet";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "Link ready";
+    return "Link made " + d.toLocaleString("en-AU", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+  }
+  function savedLink(childId) {
+    return (state.savedLinks && state.savedLinks[childId]) || null;
+  }
+  function shareHtml(childId) {
+    const child = childById(childId);
+    const meta = (state.linkStatus || []).find((row) => row.slug === child.slug);
+    const saved = savedLink(childId);
+    const made = meta && meta.active ? meta.created_at : (saved && saved.created_at);
+    const reveal = state.shareReveal === childId && saved ? `<div class="k-linkbox" id="kShareUrl">${esc(window.TripKidsLink.shareUrl(saved.token, location.href))}</div><button type="button" class="btn ghost" data-copy-link>Copy link</button>` : "";
+    return `<section class="k-share"><button type="button" class="btn" data-share-link>Share link</button><button type="button" class="btn ghost" data-new-link>Cancel link / make new link</button><p class="k-itin-meta">${esc(linkWhen(made))}. Whoever has the link can open ${esc(child.displayName)}'s trip.</p>${reveal}</section>`;
   }
 
   function packRow(r) {
@@ -207,8 +223,9 @@
     if (syncEl && state.mode === "child") {
       syncEl.textContent = state.tab === "pack" && state.sync ? state.sync.status().label : (state.itinLabel || "Itinerary");
     }
-    if (state.tab === "pack") root.innerHTML = packingHtml();
-    else root.innerHTML = itineraryHtml();
+    const who = state.mode === "parent" ? `<div class="k-who" role="tablist">${seed.CHILDREN.map((c) => `<button type="button" data-child="${c.id}" aria-pressed="${c.id === state.activeChild}">${esc(c.displayName)}</button>`).join("")}</div>` : "";
+    const share = state.mode === "parent" ? shareHtml(state.activeChild) : "";
+    root.innerHTML = who + share + (state.tab === "pack" ? packingHtml() : itineraryHtml());
     const add = $("#kAdd");
     if (add) add.classList.toggle("hidden", !(state.mode === "child" && state.tab === "pack"));
     document.querySelectorAll("[data-ktab]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.ktab === state.tab)));
@@ -386,11 +403,14 @@
     state.preview = !!ctx.preview;
     list.dataset.kidsMounted = "1";
     list.innerHTML = `<section class="k-wrap"><div class="k-hero"><h2>Kids phones</h2><p>Itinerary first, packing second. Kids cannot open the to-do list, booking codes, suggestions or your notes.</p></div><div class="kseg" role="tablist"><button type="button" data-ktab="itin" aria-selected="true">Itinerary</button><button type="button" data-ktab="pack" aria-selected="false">Packing</button></div><div id="kParentSync"></div><div id="kParentBody"></div>${state.preview ? `<details class="k-src"><summary>Preview tools</summary><button type="button" class="k-preview-off">Simulate offline</button></details>` : ""}</section>`;
+    loadRemembered();
     if (state.preview) await mountPreview("parent");
     else {
       await ensureSync();
       subscribe();
       await refreshItinerary();
+      await loadLinkStatus();
+      render();
     }
   }
 
@@ -451,45 +471,62 @@
     await refreshItinerary();
   }
 
-  async function makeInvite() {
-    const child = childById(state.activeChild);
-    const out = $("#kInviteOut");
-    if (!state.sb) { if (out) out.textContent = "Sign in as Mum or Dad on the live site after the database update."; return; }
-    if (out) out.textContent = "Making a code…";
-    const { data, error } = await state.sb.rpc("create_child_invite", { p_slug: child.slug });
-    if (error || !data) { if (out) out.textContent = "Couldn't make a code. Apply the kids database update first, and use a parent sign-in."; return; }
-    out.innerHTML = `<div class="k-code"><p><b>${esc(child.displayName)}</b> · works once, for 7 days</p><p class="k-code-val">${esc(data.code)}</p><p>On their phone: Kids — invite code. Then this email next time: ${esc(data.email)}</p><button type="button" class="btn" id="kCopyCode">Copy code</button></div>`;
-    $("#kCopyCode").onclick = () => navigator.clipboard?.writeText(data.code).then(() => snack("Code copied"), () => snack("Couldn't copy"));
+  function rememberLink(childId, token, createdAt, id) {
+    state.savedLinks = state.savedLinks || {};
+    state.savedLinks[childId] = { token: token, created_at: createdAt, id: id };
+    try { localStorage.setItem("usa-trip-share:" + childId, JSON.stringify(state.savedLinks[childId])); } catch (e) {}
   }
-
-  function safeInviteError(message) {
-    const known = ["That code is not valid", "That code has expired", "That code has already been used", "Choose a password of 8 to 72 characters", "Sign-ups are closed", "Too many attempts. Wait a few minutes and try again."];
-    return known.indexOf(message) >= 0 ? message : "Couldn't set up this phone. Ask Mum or Dad for a new code.";
+  function loadRemembered() {
+    state.savedLinks = state.savedLinks || {};
+    seed.CHILDREN.forEach((child) => {
+      try {
+        const raw = localStorage.getItem("usa-trip-share:" + child.id);
+        if (raw) state.savedLinks[child.id] = JSON.parse(raw);
+      } catch (e) {}
+    });
   }
-
-  async function claimInvite(ev) {
-    ev.preventDefault();
-    const code = $("#kCodeIn").value;
-    const pass = $("#kPass").value;
-    const again = $("#kPass2").value;
-    const err = $("#kInviteErr");
-    err.textContent = "";
-    if (pass !== again) { err.textContent = "Those passwords don't match."; return; }
-    if (pass.length < 8) { err.textContent = "Choose a password of 8 to 72 characters"; return; }
-    const btn = $("#kInviteGo");
-    btn.disabled = true;
-    try {
-      const live = state.sb;
-      if (!live) { err.textContent = "The sign-in service isn't ready."; return; }
-      const { data, error } = await live.rpc("claim_child_invite", { p_code: code, p_password: pass });
-      if (error) { err.textContent = safeInviteError(error.message); return; }
-      if (!data || data.error) { err.textContent = safeInviteError(data && data.error); return; }
-      const signed = await live.auth.signInWithPassword({ email: data.email, password: pass });
-      if (signed.error) { err.textContent = "The phone is set up, but sign-in failed. Ask for a new code."; return; }
-      $("#kInvite").close();
-    } finally {
-      btn.disabled = false;
+  async function loadLinkStatus() {
+    if (state.preview || !state.sb) { state.linkStatus = state.linkStatus || []; return; }
+    const { data, error } = await state.sb.rpc("child_link_status");
+    if (!error && Array.isArray(data)) state.linkStatus = data;
+  }
+  async function presentShare(child, token) {
+    const url = window.TripKidsLink.shareUrl(token, location.href.split("#")[0]);
+    let shared = false;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: child.displayName + " · USA Trip", text: "Tap to open the trip.", url: url });
+        shared = true;
+      } catch (err) {
+        if (err && err.name === "AbortError") return;
+      }
     }
+    state.shareReveal = shared ? null : child.id;
+    if (!shared) {
+      try { await navigator.clipboard.writeText(url); } catch (e) {}
+    }
+    render();
+  }
+  async function shareCurrent(rotate) {
+    const child = childById(state.activeChild);
+    const meta = (state.linkStatus || []).find((row) => row.slug === child.slug);
+    const saved = savedLink(child.id);
+    const same = saved && meta && meta.active && saved.id && saved.id === meta.id;
+    if (!rotate && same) { await presentShare(child, saved.token); return; }
+    if (state.preview) {
+      const token = "previewtokenpreviewtokenpreviewtokenpreview1";
+      const created = new Date().toISOString();
+      rememberLink(child.id, token, created, "preview-link");
+      state.linkStatus = (state.linkStatus || []).filter((row) => row.slug !== child.slug).concat([{ slug: child.slug, id: "preview-link", active: true, created_at: created }]);
+      await presentShare(child, token);
+      return;
+    }
+    if (!state.sb) { snack("Sign in as Mum or Dad first"); return; }
+    const { data, error } = await state.sb.rpc("issue_child_link", { p_slug: child.slug });
+    if (error || !data || !data.token) { snack("Couldn't make a link. Apply the latest database update first."); return; }
+    rememberLink(child.id, data.token, data.created_at, data.id);
+    await loadLinkStatus();
+    await presentShare(child, data.token);
   }
 
   function bind() {
@@ -533,7 +570,14 @@
         else { snack("Day removed"); await refreshItinerary(); }
         return;
       }
-      if (ev.target.closest("#kInviteBtn")) { makeInvite(); return; }
+      if (ev.target.closest("[data-share-link]")) { shareCurrent(false); return; }
+      if (ev.target.closest("[data-new-link]")) { shareCurrent(true); return; }
+      if (ev.target.closest("[data-copy-link]")) {
+        const saved = savedLink(state.activeChild);
+        const url = saved && window.TripKidsLink.shareUrl(saved.token, location.href.split("#")[0]);
+        if (url) navigator.clipboard?.writeText(url).then(() => snack("Link copied"), () => snack("Copy the link above"));
+        return;
+      }
       if (ev.target.closest(".k-preview-off")) {
         state.online = !state.online;
         snack(state.online ? "Preview is back online" : "Preview is offline");
@@ -550,17 +594,12 @@
     document.addEventListener("submit", (ev) => {
       if (ev.target.id === "kDayForm") { ev.preventDefault(); saveDay(ev.target); }
       if (ev.target.id === "kItemForm") saveItem(ev);
-      if (ev.target.id === "kInviteForm") claimInvite(ev);
     });
     const undo = $("#kUndo");
     if (undo) undo.onclick = async () => {
       $("#kSnack").classList.remove("show");
       if (state.sync) await state.sync.undo();
     };
-    const entry = $("#kidEntry");
-    if (entry) entry.onclick = () => { $("#kInviteErr").textContent = ""; $("#kInvite").showModal(); };
-    const cancel = $("#kInviteCancel");
-    if (cancel) cancel.onclick = () => $("#kInvite").close();
     const del = $("#kDeleteItem");
     if (del) del.onclick = async () => {
       if (!state.editing) return;

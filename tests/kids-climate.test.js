@@ -98,7 +98,8 @@ test("service worker still bypasses Supabase and caches the kids scripts", funct
   assert.match(sw, /kids-seed\.js/);
   assert.match(sw, /kids-sync\.js/);
   assert.match(sw, /kids-ui\.js/);
-  assert.match(sw, /trip-shell-v4-20261109/);
+  assert.match(sw, /kids-link\.js/);
+  assert.match(sw, /trip-shell-v5-20261109/);
   assert.doesNotMatch(sw, /service_role/);
 });
 

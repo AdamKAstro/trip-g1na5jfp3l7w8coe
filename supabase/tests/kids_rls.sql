@@ -15,6 +15,7 @@ declare
   v_op2 uuid := 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2';
   v_item uuid := 'b0000001-0000-4000-8000-000100000001';
   v_res jsonb;
+  v_sid uuid := '12121212-1212-4121-8121-121212121212';
 begin
   -- Public sign-up stays closed.
   begin
@@ -74,11 +75,13 @@ begin
   if (select raw_app_meta_data ->> 'trip_role' from auth.users where id = v_uid) <> 'child' then
     raise exception 'child role was not stored in app_metadata';
   end if;
+  insert into auth.sessions (id, user_id) values (v_sid, v_uid);
 
   perform set_config('request.jwt.claims', json_build_object(
     'sub', v_uid,
     'role', 'authenticated',
     'email', 'liam@kids.usa-trip.invalid',
+    'session_id', v_sid,
     'app_metadata', json_build_object(
       'trip_role', 'child',
       'child_id', 'c0a1d000-0000-4000-8000-000000000001',
@@ -109,6 +112,7 @@ begin
 
   perform set_config('request.jwt.claims', json_build_object(
     'sub', v_uid, 'role', 'authenticated', 'email', 'liam@kids.usa-trip.invalid',
+    'session_id', v_sid,
     'app_metadata', json_build_object('trip_role', 'child', 'child_id', 'c0a1d000-0000-4000-8000-000000000001')
   )::text, true);
   execute 'set local role authenticated';
