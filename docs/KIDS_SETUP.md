@@ -17,6 +17,16 @@ The same site (GitHub Pages) grows a kids area. Itinerary is the first tab. Pack
 
 Parents open **Kids** in the filter bar. They can edit the itinerary and every packing list, and create invite codes. Temperatures are a separate lookup. Editing a day does not rewrite them.
 
+## What this migration changes in the parent database
+
+It does not edit `is_trip_member()`, `items_stamp()`, `suggestions_guard()`, or their triggers. It does not replace `items_select`, `items_update`, or any suggestions policy. Those policies already require `is_trip_member()`, and that function is only the two parent emails, so a child sign-in does not pass them.
+
+It adds one restrictive policy on `items` and one on `suggestions`. A JWT whose `app_metadata.trip_role` is `child` fails those policies even if that email were later added to `is_trip_member()`.
+
+It replaces `block_other_signups()` only. The trigger on `auth.users` stays. Parent emails still pass. Every other email is still rejected unless the claim function has set a transaction-local flag and the new row is one of the four child addresses with `trip_role` `child`. Inserting a child address as a parent is still rejected. Anonymous clients have no insert grant on `auth.users`, so they cannot use that flag themselves.
+
+There are no views or materialized views on the parent tables. The new packing write function is security definer and checks the parent allow-list or the signed child id before it writes. It never reads `items` or `suggestions`. Invite codes are stored as SHA-256 only. Passwords are passed as function arguments and stored with bcrypt. A failed guess is counted, and the guess itself is not stored. Thirty failures in ten minutes pause new attempts. A child cannot create codes, cannot update `auth.users`, and cannot choose another child’s id. The id in the token is written by the claim function from the invite row.
+
 ## What kids cannot do
 
 Database policies enforce this. Hiding buttons is not the control.
@@ -68,7 +78,7 @@ Add the site to the home screen from the child’s account sheet. iPhone: Safari
 
 ## Itinerary and weather
 
-The migration seeds a short plan taken from the family list, without booking codes, prices or passport details. Re-running the seed does not overwrite days or packing ticks you have changed. Climate numbers are updated in place and are not copied onto the day title.
+The migration seeds a short plan taken from the family list, without booking codes, prices or passport details. Sebastian is only 1 January, the morning on the water. Other east-coast nights were not pinned down, so they are not seeded. Re-running the seed does not overwrite days or packing ticks you have changed. Climate numbers are updated in place and are not copied onto the day title.
 
 If the migration has not been applied, kids see an empty itinerary that says the plan is not on the phone yet. The page does not invent a backup list of bookings.
 
@@ -88,7 +98,7 @@ Cruise day list, checked against the family list’s departure, CocoCay date and
 ## Tests already run here
 
 - `node --test tests/kids-sync.test.js tests/kids-climate.test.js` — queue, reload, duplicate retry, two-session conflict, climate rounding and citations.
-- Local Postgres: `supabase/tests/local_prelude.sql`, the migration, then `supabase/tests/kids_rls.sql`. That signs in as `anon`, a child JWT and a parent JWT and checks items, suggestions, sibling packing, itinerary writes, idempotent ops and conflicts.
+- Local Postgres: `supabase/tests/local_prelude.sql`, the migration, then `supabase/tests/kids_rls.sql`, then `supabase/verify/kids_policy_checks.sql`. Checks include child versus parent versus anon, sibling rows, a forged child id, invite minting, bcrypt storage, signup-flag escalation, the 30-guess pause, idempotent ops and conflicts.
 
 The hosted project was not migrated, so this is not a live test of the production API.
 

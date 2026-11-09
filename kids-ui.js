@@ -463,7 +463,7 @@
   }
 
   function safeInviteError(message) {
-    const known = ["That code is not valid", "That code has expired", "That code has already been used", "Choose a password of 8 to 72 characters", "Sign-ups are closed"];
+    const known = ["That code is not valid", "That code has expired", "That code has already been used", "Choose a password of 8 to 72 characters", "Sign-ups are closed", "Too many attempts. Wait a few minutes and try again."];
     return known.indexOf(message) >= 0 ? message : "Couldn't set up this phone. Ask Mum or Dad for a new code.";
   }
 
@@ -483,6 +483,7 @@
       if (!live) { err.textContent = "The sign-in service isn't ready."; return; }
       const { data, error } = await live.rpc("claim_child_invite", { p_code: code, p_password: pass });
       if (error) { err.textContent = safeInviteError(error.message); return; }
+      if (!data || data.error) { err.textContent = safeInviteError(data && data.error); return; }
       const signed = await live.auth.signInWithPassword({ email: data.email, password: pass });
       if (signed.error) { err.textContent = "The phone is set up, but sign-in failed. Ask for a new code."; return; }
       $("#kInvite").close();

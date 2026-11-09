@@ -1,8 +1,20 @@
--- Kids itinerary + packing. Additive. Does not rewrite parent to-dos or suggestions.
+-- Kids itinerary + packing. Additive.
 -- Coordinator: run this whole file once on project zfgdqsoibiaclwpothio.
 -- Do not put the service role key in the website. Kids sign in with their own accounts.
 -- Re-running is safe for itinerary and packing seeds (existing rows are left alone).
 -- Climate rows are refreshed in place. They are not copied onto itinerary rows.
+--
+-- Unchanged: public.is_trip_member(), public.items_stamp(), public.suggestions_guard(),
+-- the items_stamp and suggestions_guard triggers, and the existing items/suggestions policies
+-- (items_select, items_update, suggestions_select, suggestions_insert, suggestions_update_own_new,
+-- suggestions_delete_own_new). Those policies already require is_trip_member(), which is only
+-- the two parent emails, so a child account does not satisfy them.
+-- Added: restrictive policies so a JWT with app_metadata.trip_role = child is refused on
+-- items and suggestions even if that email were later added to is_trip_member().
+-- Replaced: public.block_other_signups() only. The trigger on auth.users stays. Parent emails
+-- are still accepted. Any other email is still rejected unless this migration's claim function
+-- has set a transaction-local flag AND the new row is one of the four child addresses with
+-- trip_role child. A child row cannot be inserted as a parent.
 
 begin;
 
@@ -320,6 +332,38 @@ as $fn$
   )
 $fn$;
 
+create table if not exists private.claim_attempts (
+  id bigint generated always as identity primary key,
+  created_at timestamptz not null default pg_catalog.now(),
+  ok boolean not null
+);
+alter table private.claim_attempts enable row level security;
+alter table private.claim_attempts force row level security;
+revoke all on table private.claim_attempts from public, anon, authenticated;
+
+-- Expected failures return jsonb instead of raising, so the attempt row commits
+-- with the PostgREST transaction. The guess itself is not stored.
+create or replace function private.claim_limited(p_message text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $fn$
+declare
+  v_n integer;
+begin
+  delete from private.claim_attempts where created_at < pg_catalog.now() - interval '30 minutes';
+  select count(*) into v_n from private.claim_attempts
+  where ok = false and created_at > pg_catalog.now() - interval '10 minutes';
+  if v_n >= 30 then
+    return pg_catalog.jsonb_build_object('error', 'Too many attempts. Wait a few minutes and try again.');
+  end if;
+  insert into private.claim_attempts (ok) values (false);
+  return pg_catalog.jsonb_build_object('error', p_message);
+end
+$fn$;
+revoke all on function private.claim_limited(text) from public, anon, authenticated;
+
 create or replace function private.claim_child_invite(p_code text, p_password text)
 returns jsonb
 language plpgsql
@@ -335,26 +379,26 @@ declare
   v_meta jsonb;
 begin
   if p_password is null or char_length(p_password) < 8 or char_length(p_password) > 72 then
-    raise exception 'Choose a password of 8 to 72 characters';
+    return private.claim_limited('Choose a password of 8 to 72 characters');
   end if;
   v_code := upper(pg_catalog.regexp_replace(coalesce(p_code, ''), '[^A-Za-z0-9]', '', 'g'));
   if char_length(v_code) < 16 then
-    raise exception 'That code is not valid';
+    return private.claim_limited('That code is not valid');
   end if;
   v_hash := encode(extensions.digest(v_code, 'sha256'), 'hex');
   select * into v_inv from public.child_invites where code_hash = v_hash for update;
   if not found then
-    raise exception 'That code is not valid';
+    return private.claim_limited('That code is not valid');
   end if;
   if v_inv.used_at is not null then
-    raise exception 'That code has already been used';
+    return private.claim_limited('That code has already been used');
   end if;
   if v_inv.expires_at <= pg_catalog.now() then
-    raise exception 'That code has expired';
+    return private.claim_limited('That code has expired');
   end if;
   select * into v_child from public.children where id = v_inv.child_id;
   if not found then
-    raise exception 'That code is not valid';
+    return private.claim_limited('That code is not valid');
   end if;
 
   select * into v_user from auth.users where lower(email) = lower(v_child.email);
@@ -368,7 +412,7 @@ begin
 
   if found then
     if coalesce(v_user.raw_app_meta_data ->> 'trip_role', '') is distinct from 'child' then
-      raise exception 'Sign-ups are closed';
+      return private.claim_limited('Sign-ups are closed');
     end if;
     update auth.users set
       encrypted_password = extensions.crypt(p_password, extensions.gen_salt('bf')),
@@ -541,7 +585,7 @@ begin
     ('a1000000-0000-4000-8000-000000000004', '2026-12-24', '2026-12-25', 'Christmas in New York', 'Christmas Eve in the city, and Christmas Day lunch at Tavern on the Green.', 'nyc', 40),
     ('a1000000-0000-4000-8000-000000000005', '2026-12-26', '2026-12-28', 'Washington, DC', 'Train down on 26 December.', 'dc', 50),
     ('a1000000-0000-4000-8000-000000000006', '2026-12-29', '2026-12-29', 'Miami', 'Fly to Miami on 29 December.', 'miami', 60),
-    ('a1000000-0000-4000-8000-000000000007', '2026-12-30', '2027-01-01', 'Vero Beach and Sebastian', 'East-coast days, with a morning on the water at Sebastian on 1 January. A Keys night was still optional, so it is not listed.', 'vero', 70),
+    ('a1000000-0000-4000-8000-000000000007', '2027-01-01', '2027-01-01', 'Sebastian', 'Morning on the water on 1 January. Other east-coast nights were still being settled, so they are not listed.', 'vero', 70),
     ('a1000000-0000-4000-8000-000000000008', '2027-01-02', '2027-01-02', 'Cocoa Beach', 'The night before the ship, near Port Canaveral.', 'cocoa', 80),
     ('a1000000-0000-4000-8000-000000000009', '2027-01-03', '2027-01-03', 'Board the ship', 'Port Canaveral in the afternoon. Star of the Seas sails on 3 January.', 'cocoa', 90),
     ('a1000000-0000-4000-8000-000000000010', '2027-01-04', '2027-01-04', 'At sea', 'A day on the ship.', 'sea', 100),

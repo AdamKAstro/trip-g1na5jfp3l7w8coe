@@ -118,6 +118,35 @@ begin
 end
 $$;
 
+create or replace function public.items_stamp()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  new.updated_at := now();
+  return new;
+end
+$$;
+
+create or replace function public.suggestions_guard()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  return new;
+end
+$$;
+
+drop trigger if exists items_stamp on public.items;
+create trigger items_stamp before update on public.items
+  for each row execute function public.items_stamp();
+drop trigger if exists suggestions_guard on public.suggestions;
+create trigger suggestions_guard before insert or update on public.suggestions
+  for each row execute function public.suggestions_guard();
+
 drop trigger if exists block_other_signups on auth.users;
 create trigger block_other_signups before insert on auth.users
   for each row execute function public.block_other_signups();

@@ -49,15 +49,23 @@ begin
   if v_claim ->> 'email' <> 'liam@kids.usa-trip.invalid' then
     raise exception 'claim failed';
   end if;
-  begin
-    perform public.claim_child_invite(v_code ->> 'code', 'test-password-1');
-    raise exception 'invite code was reused';
-  exception when others then
-    if sqlerrm <> 'That code has already been used' then
-      raise;
-    end if;
-  end;
+  v_claim := public.claim_child_invite(v_code ->> 'code', 'test-password-1');
+  if v_claim ->> 'error' is distinct from 'That code has already been used' then
+    raise exception 'invite code was reused: %', v_claim;
+  end if;
   execute 'reset role';
+
+  if (select encrypted_password from auth.users where email = 'liam@kids.usa-trip.invalid') = 'test-password-1'
+     or (select encrypted_password from auth.users where email = 'liam@kids.usa-trip.invalid') not like '$2%' then
+    raise exception 'password was not stored as bcrypt';
+  end if;
+  if exists (
+    select 1 from auth.users
+    where email = 'liam@kids.usa-trip.invalid'
+      and (encrypted_password = 'test-password-1' or raw_app_meta_data::text like '%test-password-1%' or raw_user_meta_data::text like '%test-password-1%')
+  ) then
+    raise exception 'plaintext password landed in auth.users';
+  end if;
 
   select id into v_uid from auth.users where email = 'liam@kids.usa-trip.invalid';
   if v_uid is null then
@@ -145,6 +153,35 @@ begin
     null;
   end;
 
+  begin
+    perform public.apply_packing_op(
+      'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbba',
+      'b0000001-0000-4000-8000-000100000002',
+      '99999999-9999-4999-8999-999999999999',
+      null, 'Forged', null, 'Clothes', false, false, false
+    );
+    raise exception 'forged child id was accepted';
+  exception when sqlstate '42501' then
+    null;
+  end;
+
+  begin
+    perform public.create_child_invite('ana');
+    raise exception 'child minted an invite';
+  exception when sqlstate '42501' then
+    null;
+  end;
+
+  begin
+    update auth.users set raw_app_meta_data = '{"trip_role":"parent"}'::jsonb where id = v_uid;
+    raise exception 'child rewrote app_metadata';
+  exception when insufficient_privilege then
+    null;
+  end;
+  if (public.my_access() ->> 'role') = 'parent' then
+    raise exception 'child my_access returned parent';
+  end if;
+
   v_res := public.apply_packing_op(v_op, v_item, 'c0a1d000-0000-4000-8000-000000000001', 1, 'T-shirts', 4, 'Clothes', true, false, true);
   if v_res ->> 'status' <> 'applied' or (v_res -> 'item' ->> 'version')::int <> 2 then
     raise exception 'first packing op failed: %', v_res;
@@ -217,5 +254,55 @@ begin
   if v_status::boolean then
     raise exception 'anon still has select on packing';
   end if;
+
+  perform set_config('trip.allow_child_signup', 'on', true);
+  begin
+    insert into auth.users (id, email, raw_app_meta_data)
+    values ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'stranger@example.com', '{"trip_role":"child"}'::jsonb);
+    raise exception 'signup flag allowed a stranger';
+  exception when others then
+    if sqlerrm <> 'Sign-ups are closed' then
+      raise;
+    end if;
+  end;
+  begin
+    insert into auth.users (id, email, raw_app_meta_data)
+    values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 'ana@kids.usa-trip.invalid', '{"trip_role":"parent"}'::jsonb);
+    raise exception 'child address was accepted as a parent';
+  exception when others then
+    if sqlerrm <> 'Sign-ups are closed' then
+      raise;
+    end if;
+  end;
+
+  execute 'set local role anon';
+  perform set_config('trip.allow_child_signup', 'on', true);
+  begin
+    insert into auth.users (id, email, raw_app_meta_data)
+    values ('ffffffff-ffff-4fff-8fff-ffffffffffff', 'ana@kids.usa-trip.invalid', '{"trip_role":"child"}'::jsonb);
+    raise exception 'anon inserted a child user directly';
+  exception when insufficient_privilege then
+    null;
+  end;
+  execute 'reset role';
+  delete from private.claim_attempts;
+  execute 'set local role anon';
+  for v_n in 1..30 loop
+    v_claim := public.claim_child_invite('not-a-real-code-value', 'longpassword');
+    if v_claim ->> 'error' is distinct from 'That code is not valid' then
+      raise exception 'unexpected failure while filling the attempt limit: %', v_claim;
+    end if;
+  end loop;
+  v_claim := public.claim_child_invite('not-a-real-code-value', 'longpassword');
+  if v_claim ->> 'error' is distinct from 'Too many attempts. Wait a few minutes and try again.' then
+    raise exception 'rate limit did not trip: %', v_claim;
+  end if;
+  begin
+    perform count(*) from private.claim_attempts;
+    raise exception 'anon read claim attempts';
+  exception when insufficient_privilege then
+    null;
+  end;
+  execute 'reset role';
 end
 $t$;

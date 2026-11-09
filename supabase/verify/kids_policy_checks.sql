@@ -12,8 +12,13 @@ begin
      or to_regclass('public.climate_normals') is null
      or to_regclass('public.climate_gaps') is null
      or to_regclass('public.packing_ops') is null
-     or to_regclass('public.child_invites') is null then
+     or to_regclass('public.child_invites') is null
+     or to_regclass('private.claim_attempts') is null then
     raise exception 'kids tables are missing';
+  end if;
+  if has_table_privilege('anon', 'private.claim_attempts', 'SELECT')
+     or has_table_privilege('authenticated', 'private.claim_attempts', 'SELECT') then
+    raise exception 'claim attempts are readable';
   end if;
 
   if not (select relrowsecurity and relforcerowsecurity from pg_class where oid = 'public.packing_items'::regclass) then
@@ -45,6 +50,22 @@ begin
   end if;
   if has_function_privilege('anon', 'public.apply_packing_op(uuid,uuid,uuid,integer,text,integer,text,boolean,boolean,boolean)', 'EXECUTE') then
     raise exception 'anon can apply packing ops';
+  end if;
+
+  if (select pg_get_expr(polqual, polrelid) from pg_policy where polname = 'items_select' and polrelid = 'public.items'::regclass) is distinct from 'is_trip_member()' then
+    raise exception 'items_select no longer matches is_trip_member()';
+  end if;
+  if (select pg_get_expr(polqual, polrelid) from pg_policy where polname = 'suggestions_select' and polrelid = 'public.suggestions'::regclass) is distinct from 'is_trip_member()' then
+    raise exception 'suggestions_select no longer matches is_trip_member()';
+  end if;
+  if to_regprocedure('public.items_stamp()') is null or to_regprocedure('public.suggestions_guard()') is null then
+    raise exception 'parent trigger functions are missing';
+  end if;
+  if not exists (select 1 from pg_trigger where tgname = 'items_stamp' and not tgisinternal) then
+    raise exception 'items_stamp trigger is missing';
+  end if;
+  if not exists (select 1 from pg_trigger where tgname = 'suggestions_guard' and not tgisinternal) then
+    raise exception 'suggestions_guard trigger is missing';
   end if;
 
   if not exists (select 1 from pg_policy where polname = 'items_no_child_role' and polrelid = 'public.items'::regclass) then
